@@ -11,15 +11,15 @@ ASSET_DIR = ./asset
 VIZ_DIR = $(SRC_DIR)/viz
 SERVER_DIR = $(SRC_DIR)/server
 
-VIZ_MAIN_PAGE = $(ASSET_DIR)/index.html
+VIZ_MAIN_PAGE = $(ASSET_DIR)/main.html
 SERVER_MAIN_SCRIPT = $(SERVER_DIR)/main.py
 
 
 .PHONY : clean
 
-all : vizualization
+all : viz
 
-visualization : $(VIZ_MAIN_PAGE) $(wildcard $(VIZ_DIR)/*.js) $(wildcard $(SERVER_DIR)/*.py)
+viz : $(VIZ_MAIN_PAGE) $(wildcard $(VIZ_DIR)/*.js) $(wildcard $(SERVER_DIR)/*.py)
 	$(VIEWER) $(VIEWER_FLAGS) $(VIZ_MAIN_PAGE) &
 	$(INTERPRETER) $(INTERPRETER_FLAGS) $(SERVER_MAIN_SCRIPT)
 
