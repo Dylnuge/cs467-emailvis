@@ -1,0 +1,38 @@
+{
+	"people" : [ "name" ],
+	"means" : [ "name" ],
+
+	"data" : 
+	{
+		"start-month" : 1,
+		"start-year" : 1990,
+		"end-month" : 12,
+		"end-year" : 2014,
+		
+		"months" : 
+		{
+			"1-1990" : 
+			[
+				{
+					"name" : "name",
+					"means" :
+					{
+						"name" : { "volume" : 1, "formality" : 0.00 },
+						"Gmail" : { "volume" : 1, "formality" : 1.00 }
+					}
+				}
+			],
+			"12-2014" : 
+			[
+				{
+					"name" : "name",
+					"means" :
+					{
+						"name" : { "volume" : 1, "formality" : 0.00 },
+						"Gmail" : { "volume" : 1, "formality" : 1.00 }
+					}
+				}
+			]
+		}
+	}
+}

@@ -1,0 +1,54 @@
+{
+	"people" : [ "Jack", "Jill" ],
+	"means" : [ "Facebook", "Gmail" ],
+
+	"data" : 
+	{
+		"start-month" : 1,
+		"start-year" : 2011,
+		"end-month" : 2,
+		"end-year" : 2011,
+		
+		"months" : 
+		{
+			"1-2011" : 
+			[
+				{
+					"name" : "Jack",
+					"means" :
+					{
+						"Facebook" : { "volume" : 2000, "formality" : 0.24 },
+						"Gmail" : { "volume" : 100, "formality" : 0.50 }
+					}
+				},
+				{
+					"name" : "Jill",
+					"means" :
+					{
+						"Facebook" : { "volume" : 1000, "formality" : 0.13 },
+						"Gmail" : { "volume" : 1000, "formality" : 0.75 }
+					}
+				}
+			],
+			"2-2011" : 
+			[
+				{
+					"name" : "Jack",
+					"means" :
+					{
+						"Facebook" : { "volume" : 200, "formality" : 0.50 },
+						"Gmail" : { "volume" : 1000, "formality" : 0.75 }
+					}
+				},
+				{
+					"name" : "Jill",
+					"means" :
+					{
+						"Facebook" : { "volume" : 2000, "formality" : 0.10 },
+						"Gmail" : { "volume" : 1000, "formality" : 0.40 }
+					}
+				}
+			]
+		}
+	}
+}
