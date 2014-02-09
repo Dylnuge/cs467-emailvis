@@ -1,46 +1,31 @@
-##	@file main.py
+##	@file server.py
 #	@author Joseph Ciurej
 #	@date Winter 2014
 #
 #	Main Script for the Email Visualization Server
 #
 #	@TODO
-#	- Write the implementation in this file!
+#	- Add any supplemental Tornado configuration options within this file
+#	  as needed.
 
 import tornado.httpserver
 import tornado.options
 import tornado.ioloop
 import tornado.web
-import tornado.escape
-from datetime import date
-
-### Server Backend Classes ###
-
-class VersionHandler(tornado.web.RequestHandler):
-    def get(self):
-        response = { 'version': '3.5.1',
-                     'last_build':  date.today().isoformat() }
-        self.write(response)
-
-class GetGameByIdHandler(tornado.web.RequestHandler):
-    def get(self, id):
-        response = { 'id': int(id),
-                     'name': 'Crazy Game',
-                     'release_date': date.today().isoformat() }
-        self.write(response)
+from Application import Application
 
 ### Primary Entry Point ###
 
-##	The primary entry point function for the email visualization
-#	backend, which instantiates the backend to listen for API
-#	requests.
+##	The primary entry point function for the email visualization backend, which 
+#	instantiates the backend to listen for API requests.
 def main():
-	application = tornado.web.Application( [
-		(r"/getgamebyid/([0-9]+)", GetGameByIdHandler),
-		(r"/version", VersionHandler)
-	] )
+	# Global Option Configuration #
+	tornado.options.define( "port", default=9999, help="Hosting Port", type=int )
 
-	application.listen(8888)
+	# Start-Up Logic #
+	tornado.options.parse_command_line()
+	server = tornado.httpserver.HTTPServer( Application() )
+	server.listen( tornado.options.options.port )
 	tornado.ioloop.IOLoop.instance().start()
 
 

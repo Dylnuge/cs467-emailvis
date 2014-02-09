@@ -1,4 +1,4 @@
-##	@file Handler.py
+##	@file PageHandlers.py
 #	@author Joseph Ciurej
 #	@date Winter 2014
 #
@@ -6,18 +6,7 @@
 #	from clients (see https://github.com/facebook/tornado/blob/master/demos).
 #
 #	@TODO
-#	High Priority:
-#	- Add logic to handle errors more eloquently when reading from the main
-#	  database.
-#		> Add logic to handle the case when the author for a given article
-#		  doesn't exist (in 'HomeHandler').
-#	- Refactor the code associated with retrieving information from the
-#	  database into separate classes (e.g. Article class, Author class).
-#	Low Priority:
-#	- Add logic to handle errors more eloquently when image files are missing
-#	  (fall back on a default file).
-#		> Add logic to handle the case when the image cover for a given
-#		  article isn't available.
+#	- Write the implementation of all the web handlers here!
 
 import os
 import tornado.web
@@ -46,7 +35,7 @@ class WebResource():
 ### Page Handlers ###
 
 ##	The base page request handling type from which all page handlers for
-#	the Gasgolo web application extend.
+#	the email backend application extend.
 class PageHandler( tornado.web.RequestHandler, WebResource ):
 	##	@override
 	def get_url( self ):
@@ -69,15 +58,7 @@ class PageHandler( tornado.web.RequestHandler, WebResource ):
 class HomeHandler( PageHandler ):
 	##	@override
 	def get( self ):
-		recent_articles = self.database.query(
-			"SELECT * FROM articles ORDER BY published DESC LIMIT 10" )
-
-		for recent_article in recent_articles:
-			author = self.database.get(
-				"SELECT * FROM authors WHERE id = %s" % recent_article.author_id )
-			recent_article.author = author.name
-
-		self.render( self.get_url(), articles=recent_articles )
+		self.render( self.get_url() )
 
 	##	@override
 	@WebResource.resource_url.getter
@@ -85,65 +66,14 @@ class HomeHandler( PageHandler ):
 		return "home.html"
 
 
-##	Page handler for the "/about" (about) web page.
-class AboutHandler( PageHandler ):
-	##	@override
-	def get( self ):
-		authors = self.database.query( "SELECT * FROM authors ORDER BY name DESC" )
-
-		self.render( self.get_url(), authors=authors )
-
-	##	@override
-	@WebResource.resource_url.getter
-	def resource_url( self ):
-		return "about.html"
-
-
-##	Page handler for the "/games" (games) web page.
-class AboutHandler( PageHandler ):
-	##	@override
-	def get( self ):
-		authors = self.database.query( "SELECT * FROM authors ORDER BY name DESC" )
-
-		self.render( self.get_url(), authors=authors )
-
-	##	@override
-	@WebResource.resource_url.getter
-	def resource_url( self ):
-		return "about.html"
-
-
 ### UI Modules ###
 
-##	The base page HTML module type from which all module types for the Gasgolo 
-#	web application extend.
+##	The base page HTML module type from which all module types for the email
+#	visualization backend web application extend.
 class PageModule( tornado.web.UIModule, WebResource ):
 	##	@override
 	def get_url( self ):
 		return join_paths( "html", "modules", self.resource_url )
-
-
-##	Rendering module for summary widgets of articles.
-class ArticleSummaryModule( PageModule ):
-	##	@override
-	def render( self, article ):
-		summary = {
-			"title" : article.title,
-			# TODO: Determine the URL for the image associated with the article.
-			"image_url" : article.title + ".png",
-			"author" : article.author,
-			"publication_date" : article.published.strftime( "%B %d, %Y" ),
-			# TODO: Import the number of comments for the article.
-			"comment_count" : 0,
-			"summary" : article.summary,
-		}
-
-		return self.render_string( self.get_url(), article=summary )
-
-	##	@override
-	@WebResource.resource_url.getter
-	def resource_url( self ):
-		return "article_summary.html"
 
 
 ##	Rendering module for the description widgets of authors.
@@ -152,7 +82,6 @@ class AuthorModule( PageModule ):
 	def render( self, author ):
 		summary = {
 			"name" : author.name,
-			"image_url" : author.email + ".png",
 			"email" : author.email,
 			"role" : author.role,
 			"description" : author.description_html,
