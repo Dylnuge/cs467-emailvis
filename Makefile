@@ -1,27 +1,25 @@
-VIEWER = firefox
-VIEWER_FLAGS = 
+COMPILER = python
 INTERPRETER = python
-INTERPRETER_FLAGS = 
+COMPILER_FLAGS = 
 TEST_FLAGS = -m unittest
 
 SRC_DIR = ./src
 LIB_DIR = ./lib
 TEST_DIR = ./test
-ASSET_DIR = ./asset
-VIZ_DIR = $(SRC_DIR)/viz
-SERVER_DIR = $(SRC_DIR)/server
-
-VIZ_MAIN_PAGE = $(ASSET_DIR)/main.html
-SERVER_MAIN_SCRIPT = $(SERVER_DIR)/main.py
-
+MAIN_SCRIPT = $(SRC_DIR)/server.py
 
 .PHONY : clean
 
-all : viz
+all : server
 
-viz : $(VIZ_MAIN_PAGE) $(wildcard $(VIZ_DIR)/*.js) $(wildcard $(SERVER_DIR)/*.py)
-	$(VIEWER) $(VIEWER_FLAGS) $(VIZ_MAIN_PAGE) &
-	$(INTERPRETER) $(INTERPRETER_FLAGS) $(SERVER_MAIN_SCRIPT)
+server : $(MAIN_SCRIPT) $(wildcard $(SRC_DIR)/*.py) $(wildcard $(LIB_DIR)/*.py)
+	$(INTERPRETER) $(COMPILER_FLAGS) $(MAIN_SCRIPT)
+
+tests : $(wildcard $(SRC_DIR)/*.py) $(wildcard $(TEST_DIR)/*.py)
+	$(INTERPRETER) $(TEST_FLAGS) discover -s $(TEST_DIR) -p '*Test.py'
+
+%Test : $(TEST_DIR)/%Test.py $(SRC_DIR)/%.py
+	$(INTERPRETER) $(TEST_FLAGS) discover -s $(TEST_DIR) -p '$@.py'
 
 clean :
-	-rm -rf $(SERVER_DIR)/*.pyc $(LIB_DIR)/*.pyc $(TEST_DIR)/*.pyc
+	-rm -rf $(SRC_DIR)/*.pyc $(LIB_DIR)/*.pyc $(TEST_DIR)/*.pyc
