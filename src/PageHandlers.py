@@ -13,6 +13,8 @@ import tornado.web
 
 from os.path import join as join_paths
 from os.path import exists as file_exists
+from DataPullFunctions import *
+from MessageArchive import *
 
 ### Helper Classes ###
 
@@ -34,49 +36,42 @@ class WebResource():
 
 ### Page Handlers ###
 
-##	The base page request handling type from which all page handlers for
-#	the email backend application extend.
-class PageHandler( tornado.web.RequestHandler, WebResource ):
-	##	@override
-	def get_url( self ):
-		return join_paths( "html", self.resource_url )
-
-	##	@return The string representing the title of the page being serviced
-	#	by the instance handler.
-	@property
-	def title( self ):
-		return "Official Website"
-
-	##	@return A reference to the database containing information associated
-	#	with the website.
-	@property
-	def database( self ):
-		return self.application.database
-
-
-##	Page handler for the "/" (home) web page.
-class HomeHandler( PageHandler ):
-	##	@override
+##	Page handler for the "/" (home) email visaulzation web page.  This page 
+#	displays the submission form first (GET), then displays the visualization 
+#	after the form is submitted (POST).
+class VizHandler( tornado.web.RequestHandler ):
+	##	Displays the credential submission form.
+	#
+	#	@override
 	def get( self ):
-		self.render( self.get_url() )
+		self.render( "html/home.html", sources=self.source_directory.keys() )
 
-	##	@override
-	@WebResource.resource_url.getter
-	def resource_url( self ):
-		return "home.html"
+	##	Displays the visualization given the user credentials.
+	#
+	#	@override
+	def post( self ):
+		aggregate_archive = MessageArchive()
 
+		for source, pull_fxn in self.source_directory.iteritems():
+			source_user_name = self.get_argument( source + "_user" )
+			source_password = self.get_argument( source + "_pass" )
 
-##	Page handler for the "/viz" web page, which contains all the primary
-#	email visualization.
-class VizHandler( PageHandler ):
-	##	@override
-	def get( self ):
-		self.render( self.get_url() )
+			# Only consider the archive if it the form was filled out by the user.
+			if source_user_name and source_password:
+				source_archive = pull_fxn( source_user_name, source_password )
+				aggregate_archive.combine_with( source_archive )
 
-	##	@override
-	@WebResource.resource_url.getter
-	def resource_url( self ):
-		return "viz.html"
+		# TODO: Remove.
+		aggregate_archive.correspondents = [ "a", "b", "c", "d" ]
+
+		self.render( "html/viz.html", archive=aggregate_archive )
+
+	##	@return A dictionary containing all message sources for the visualization
+	#	as keys and the function used to pull the data from that source as the
+	#	associated value.
+	@property
+	def source_directory( self ):
+		return { "Gmail" : pull_gmail_data, "Gchat" : pull_gchat_data }
 
 
 ### UI Modules ###
@@ -89,20 +84,14 @@ class PageModule( tornado.web.UIModule, WebResource ):
 		return join_paths( "html", "modules", self.resource_url )
 
 
-##	Rendering module for the description widgets of authors.
-class AuthorModule( PageModule ):
+##	Rendering module for the authentication widgets for visualization data
+#	sources.
+class SourceAuthModule( PageModule ):
 	##	@override
-	def render( self, author ):
-		summary = {
-			"name" : author.name,
-			"email" : author.email,
-			"role" : author.role,
-			"description" : author.description_html,
-		}
-
-		return self.render_string( self.get_url(), author=summary )
+	def render( self, source ):
+		return self.render_string( self.get_url(), source=source )
 
 	##	@override
 	@WebResource.resource_url.getter
 	def resource_url( self ):
-		return "author.html"
+		return "source_auth.html"

@@ -14,7 +14,7 @@
 {% block content %}
 	<div class="col-md-9 well viz-panel">
 		<div id="viz-pane" class="viz-pane">
-			<!-- TODO: Place the visualization pane in here. -->
+			<!-- The visualization pane goes here. -->
 		</div>
 		<div class="playback-pane">
 			<input id="playback-slider" type="range" min="1" max="100" step="1" value="5"/>
@@ -23,13 +23,30 @@
 	<div class="col-md-3 well viz-panel">
 		<div class="means-pane">
 			<h4><strong>Communication Means</strong></h4>
-			<!-- TODO: There's a problem here with overflow into the next pane! -->
 			<div id="means-options" class="pane-options">
+				<form role="form">
+					{% for source in archive.sources %}
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="{{ source }}_cbox"> {{ source }}
+							</label>
+						</div>
+					{% end %}
+				</form>
 			</div>
 		</div>
 		<div class="people-pane">
 			<h4><strong>People</strong></h4>
 			<div id="people-options" class="pane-options">
+				<form role="form">
+					{% for correspondent in archive.correspondents %}
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" id="{{ correspondent }}_cbox"> {{ correspondent }}
+							</label>
+						</div>
+					{% end %}
+				</form>
 			</div>
 		</div>
 	</div>

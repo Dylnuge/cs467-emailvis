@@ -2,17 +2,19 @@
 
 {% block content %}
 	<div class="jumbotron col-md-12">
-		<h1>Email Visualization</h1>
+		<h1>Formality Across Mediums</h1>
 		<p>
-			Welcome to the formality email visualization!  The source code for
-			this visualization is located <a href="https://github.com/NintenJoe/cs467-emailvis">here</a>.
+			Please enter your credentials for the following online services to
+			allow the visualization to access the associated message data.  If
+			you wish to omit certain service messages from the visualization,
+			simply leave the associated entry field blank.
 		</p>
-		<p>
-			TODO: Add fields here if needed for user information entry.  Local
-			keys may be required to gather this information.
-		</p>
-		<p>
-			<a href="/viz">Visualization Page</a>
-		</p>
+
+		<form role="form" action="/" method="post">
+			{% for source in sources %}
+				{% module SourceAuth( source ) %}
+			{% end %}
+			<input class="btn btn-primary btn-lg" type="submit" value="Visualize">
+		</form>
 	</div>
 {% end %}

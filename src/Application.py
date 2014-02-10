@@ -33,8 +33,7 @@ class Application( tornado.web.Application ):
 		asset_path = join_paths( project_path, "assets" )
 
 		page_handlers = [
-			( r"/", HomeHandler ),
-			( r"/viz", VizHandler ),
+			( r"/", VizHandler ),
 		]
 		app_settings = {
 			# URL Settings #
@@ -43,7 +42,9 @@ class Application( tornado.web.Application ):
 			"static_path" : join_paths( asset_path, "static" ),
 			"template_path" : join_paths( asset_path, "template" ),
 			# Module/Render Settings #
-			# "ui_modules" : { "ModuleName", ModuleClass },
+			"ui_modules" : {
+				"SourceAuth" : SourceAuthModule,
+			},
 			# Miscellaneous Settings #
 			"debug" : True,
 		}
