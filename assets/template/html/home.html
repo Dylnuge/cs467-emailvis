@@ -1,20 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Email Visualization</title>
+{% extends "base.html" %}
 
-		<!-- Library Inclusions -->
-    <!--<link rel="stylesheet" href="../lib/bootstrap.css">
-    <link rel="stylesheet" href="../lib/bootstrap-theme.css">
-    <script src="../lib/bootstrap.min.js"></script>
-		<script src="../lib/d3.v3.min.js"></script>-->
-
-		<!-- Source Inclusions -->
-		<!--<script src="../src/viz/main.js"></script>-->
-  </head>
-
-  <body>
-		Hello, world!
-  </body>
-</html>
+{% block content %}
+	<div class="jumbotron col-md-12">
+		<h1>Email Visualization</h1>
+		<p>
+			Welcome to the formality email visualization!  The source code for
+			this visualization is located <a href="https://github.com/NintenJoe/cs467-emailvis">here</a>.
+		</p>
+		<p>
+			TODO: Add fields here if needed for user information entry.  Local
+			keys may be required to gather this information.
+		</p>
+		<p>
+			<a href="/viz">Visualization Page</a>
+		</p>
+	</div>
+{% end %}

@@ -34,6 +34,7 @@ class Application( tornado.web.Application ):
 
 		page_handlers = [
 			( r"/", HomeHandler ),
+			( r"/viz", VizHandler ),
 		]
 		app_settings = {
 			# URL Settings #

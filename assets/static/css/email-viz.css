@@ -1,0 +1,50 @@
+/**
+ * @file email-viz.css
+ * @author Joseph Ciurej
+ * @date Winter 2014
+ *
+ * Container file for supplementary CSS for the email visualization website.
+ *
+ * @TODO
+ */
+
+body {
+	padding-top: 20px;
+	width: 100%;
+}
+
+/* Visualization Page Styling */
+
+.viz-panel {
+
+}
+
+.means-pane .people-pane .viz-pane .playback-pane {
+	width: 100%;
+}
+
+.means-pane {
+	height: 20%;
+}
+
+.people-pane {
+	height: 80%;
+}
+
+.viz-pane {
+	height: 95%;
+}
+
+.playback-pane {
+	height: 5%;
+}
+
+.pane-options {
+	height: 100%;
+	width: 100%;
+	overflow-y: auto;
+}
+
+#playback-slider {
+	width: 100%;
+}

@@ -66,6 +66,19 @@ class HomeHandler( PageHandler ):
 		return "home.html"
 
 
+##	Page handler for the "/viz" web page, which contains all the primary
+#	email visualization.
+class VizHandler( PageHandler ):
+	##	@override
+	def get( self ):
+		self.render( self.get_url() )
+
+	##	@override
+	@WebResource.resource_url.getter
+	def resource_url( self ):
+		return "viz.html"
+
+
 ### UI Modules ###
 
 ##	The base page HTML module type from which all module types for the email

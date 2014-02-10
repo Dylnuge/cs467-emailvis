@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block js_imports %}
+	<script>
+		$( document ).ready( function() 
+		{
+			$( ".viz-panel" ).height( $(document).height() - 80 );
+		} );
+	</script>
+
+	<!--<script src="{{ static_url( "js/main.js" ) }}"></script>-->
+{% end %}
+
+{% block content %}
+	<div class="col-md-9 well viz-panel">
+		<div id="viz-pane" class="viz-pane">
+			<!-- TODO: Place the visualization pane in here. -->
+		</div>
+		<div class="playback-pane">
+			<input id="playback-slider" type="range" min="1" max="100" step="1" value="5"/>
+		</div>
+	</div>
+	<div class="col-md-3 well viz-panel">
+		<div class="means-pane">
+			<h4><strong>Communication Means</strong></h4>
+			<!-- TODO: There's a problem here with overflow into the next pane! -->
+			<div id="means-options" class="pane-options">
+			</div>
+		</div>
+		<div class="people-pane">
+			<h4><strong>People</strong></h4>
+			<div id="people-options" class="pane-options">
+			</div>
+		</div>
+	</div>
+{% end %}
