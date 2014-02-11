@@ -5,46 +5,52 @@
 #	Source File for the "MessageArchive" Type
 #
 #	@TODO
-#	- Fill in the implementation of this file!
+#	- Implement the formality computation for the 'Message' class based on
+#	  the message contents.
 
 import json
 from datetime import datetime
 
+### Module Classes ###
+
 ##	A class representation of a single message sent between two users over a
-#	communication medium.
+#	particular communication medium.
 class Message():
 	### Constructors ###
 
-	##	Instantiates a message with the given correspondents, contents, and
-	#	send date.
+	##	Instantiates a message with the given correspondent, medium of
+	#	communication, contents, and send date.
 	#
-	#	@param sender The person that sent the message.
-	#	@param receiver The person that receieved the message.
+	#	@param correspondent The person that with which the user corresponded.
+	#	@param medium The medium over which the message was sent.
 	#	@param contents The full contents of the message between the users.
 	#	@param send_date The date (in 'datetime' format) at which the message
 	#	was sent.
-	def __init__( self, sender, receiver, contents, send_date ):
-		self.sender = sender
-		self.receiver = receiver
+	def __init__( self, correspondent, medium, contents, send_date ):
+		self.correspondent = correspondent
+		self.medium = medium
 		self.contents = contents
-
 		self.send_date = send_date
 
 	### Methods ###
 
-	##	Returns a summary of the message as a dictionary object.
+	##	Returns a string representing the send date of the message of the
+	#	form "month-year" (with no integer value padding).
 	#
-	#	@return A dictionary object representing the contents of the instance message.
-	def to_dict( self ):
-		message_dict = {
-			"sender" : self.sender,
-			"receiver" : self.receiver,
-			"contents" : self.contents,
-			"send_date" : self.send_date.strftime( "%w-%d-%Y" ),
-			"formality" : self.get_formality_level(),
-		}
+	#	@return A string of the form "month-year" corresponding to the send
+	#	date of the message.
+	def get_date_string( self ):
+		month = str(int( self.send_date.strftime( "%m" ) ))
+		year = str(int( self.send_date.strftime( "%Y" ) ))
 
-		return message_dict
+		return month + "-" + year
+
+	##	Returns the volume of the instance message measured in terms of the
+	#	total number of characters contained within the message.
+	#
+	#	@return The volume of the message as an integer value.
+	def get_volume( self ):
+		return len( self.contents )
 
 	##	Determines the level of formality of the message and returns it as a
 	#	percentage value.
@@ -61,37 +67,73 @@ class Message():
 class MessageArchive():
 	### Constructors ###
 
-	##	Creates an archive containing all the given messages for associated
-	#	with a given source.
+	##	Creates an archive containing all the given messages.
 	#
-	#	@param source The name of the single source for the message archive.
-	#	@param messages An array of messages associated with the given source
+	#	@param message_list An array of messages associated with the given source
 	#	to be stored in the archive.
-	def __init__( self, source="", messages=[] ):
-		self.sources = [ source ] if source else []
-		self.messages = messages
+	def __init__( self, message_list=[] ):
+		self.message_list = message_list
 
-		self.correspondents = []
-		# TODO: Create the month dictionary.
-		self.months = {}
+	### Overloaded Operators ###
 
-		self.start_time = datetime.max
-		self.end_time = datetime.min
+	##	Addition operation for two archives, which combines the message listings
+	#	for the two individual archives into a aggregate archive.
+	#
+	#	@param other The archive with which the instance achive will be
+	#	aggregated.
+	#	@return An aggregate archive containing the contents of the two operand
+	#	archives.
+	def __add__( self, other ):
+		return MessageArchive( self.message_list + other.message_list )
 
 	### Methods ###
 
-	##	Combines the contents of the instance message archive with the contents
-	#	of the given archive, aggregating the result in the instance archive.
-	#
-	#	@param other The message archive with which the instance will be
-	#	combined.
-	def combine_with( self, other ):
-		self.sources = list(set(self.sources + other.sources))
-		self.messages = self.messages + other.messages
+	##	@return A list of all correspondents for the messages contained within 
+	#	the archive.
+	def get_correspondents( self ):
+		correspondents = map( lambda msg: msg.correspondent, self.message_list )
 
-		self.correspondents = list(set(self.correspondents + other.correspondents))
-		# TODO: Combine months information dictionary.
-		self.months = self.months
+		return list(set( correspondents ))
 
-		self.start_time = self.start_time if self.start_time < other.start_time else other.start_time
-		self.end_time = self.end_time if self.end_time > other.end_time else other.end_time
+	##	@return A list of all the mediums over which messages contained within
+	#	the archive are sent.
+	def get_mediums( self ):
+		mediums = map( lambda msg: msg.medium, self.message_list )
+
+		return list(set( mediums ))
+
+	##	@return A dictionary of all the messages contained within the archive
+	#	associated by sent month (key for month is of the form "1-2014").
+	def get_messages_by_month( self ):
+		month_map = {}
+
+		for message in self.message_list:
+			month = message.get_date_string()
+			if not month in month_map:
+				month_map[ month ] = {}
+			people_map = month_map[ month ]
+
+			person = message.correspondent
+			if not person in people_map:
+				people_map[ person ] = {}
+			medium_map = people_map[ person ]
+
+			medium = message.medium
+			if not medium in medium_map:
+				medium_map[ medium ] = { "count": 0, "volume": 0, "formality": 0.0 }
+
+			# After the medium has been found for the proper person and month,
+			# associate the message data with this month.
+			medium_map[ medium ][ "count" ] += 1
+			medium_map[ medium ][ "volume" ] += message.get_volume()
+			medium_map[ medium ][ "formality" ] += message.get_formality_level()
+
+		return month_map
+
+	##	@return The first email contained in the instance archive chronologically.
+	def get_earliest_email( self ):
+		return min( self.message_list, key=lambda msg: msg.send_date )
+
+	##	@return The last email contained in the instance archive chronologically.
+	def get_latest_email( self ):
+		return max( self.message_list, key=lambda msg: msg.send_date )

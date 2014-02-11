@@ -10,6 +10,7 @@
 
 import imaplib
 import email
+import datetime
 from MessageArchive import *
 
 ### Data Pulling Functions ###
@@ -21,8 +22,10 @@ from MessageArchive import *
 #	@param password The credentials of the user whose message data will be retrieved.
 #	@return A 'MessageArchive' containing all the message data for the user.
 def pull_facebook_data( user_name, password ):
+	medium = "Facebook"
 	messages = []
-	return MessageArchive( "Facebook", messages )
+
+	return MessageArchive( messages )
 
 
 ##	Returns a 'MessageArchive' object containing all the Gmail messages
@@ -32,8 +35,11 @@ def pull_facebook_data( user_name, password ):
 #	@param password The credentials of the user whose message data will be retrieved.
 #	@return A 'MessageArchive' containing all the message data for the user.
 def pull_gmail_data( user_name, password ):
+	medium = "Gmail"
 	messages = []
-	return MessageArchive( "Gmail", messages )
+
+	messages.append( Message( "Jim", medium, "Hey", datetime.now() ) )
+	return MessageArchive( messages )
 
 
 ##	Returns a 'MessageArchive' object containing all the Gchat messages
@@ -43,8 +49,11 @@ def pull_gmail_data( user_name, password ):
 #	@param password The credentials of the user whose message data will be retrieved.
 #	@return A 'MessageArchive' containing all the message data for the user.
 def pull_gchat_data( user_name, password ):
+	medium = "Gchat"
 	messages = []
-	return MessageArchive( "Gchat", messages )
+
+	messages.append( Message( "Jim", medium, "Hey", datetime.now() ) )
+	return MessageArchive( messages )
 
 
 ##	Returns a 'MessageArchive' object containing all the LinkedIn messages
@@ -54,5 +63,7 @@ def pull_gchat_data( user_name, password ):
 #	@param password The credentials of the user whose message data will be retrieved.
 #	@return A 'MessageArchive' containing all the message data for the user.
 def pull_linkedin_data( user_name, password ):
+	medium = "LinkedIn"
 	messages = []
-	return MessageArchive( "LinkedIn", messages )
+
+	return MessageArchive( messages )

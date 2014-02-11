@@ -59,10 +59,7 @@ class VizHandler( tornado.web.RequestHandler ):
 			# Only consider the archive if it the form was filled out by the user.
 			if source_user_name and source_password:
 				source_archive = pull_fxn( source_user_name, source_password )
-				aggregate_archive.combine_with( source_archive )
-
-		# TODO: Remove.
-		aggregate_archive.correspondents = [ "a", "b", "c", "d" ]
+				aggregate_archive += source_archive
 
 		self.render( "html/viz.html", archive=aggregate_archive )
 

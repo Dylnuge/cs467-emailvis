@@ -8,16 +8,31 @@
 		} );
 	</script>
 
-	<!--<script src="{{ static_url( "js/main.js" ) }}"></script>-->
+	<!--
+	TODO: Reimplement this section with the embedded JSON from the back-end.
+	<script>
+		VIZ_JSON = 
+		{
+			
+		}
+	</script>
+	-->
+
+	<script src="{{ static_url( "js/viz.js" ) }}"></script>
 {% end %}
 
 {% block content %}
 	<div class="col-md-9 well viz-panel">
 		<div id="viz-pane" class="viz-pane">
-			<!-- The visualization pane goes here. -->
+			<!-- The visualization pane goes here! -->
 		</div>
-		<div class="playback-pane">
-			<input id="playback-slider" type="range" min="1" max="100" step="1" value="5"/>
+		<div class="playback-pane row">
+			<div class="col-md-1">
+				<input id="playback-button" class="btn btn-primary" type="submit" value="&#9658">
+			</div>
+			<div class="col-md-11">
+				<input id="playback-slider" type="range" min="1" max="100" step="1" value="1"/>
+			</div>
 		</div>
 	</div>
 	<div class="col-md-3 well viz-panel">
@@ -25,10 +40,10 @@
 			<h4><strong>Communication Means</strong></h4>
 			<div id="means-options" class="pane-options">
 				<form role="form">
-					{% for source in archive.sources %}
+					{% for medium in archive.get_mediums() %}
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="{{ source }}_cbox"> {{ source }}
+								<input type="checkbox" id="{{ medium }}_cbox"> {{ medium }}
 							</label>
 						</div>
 					{% end %}
@@ -39,7 +54,7 @@
 			<h4><strong>People</strong></h4>
 			<div id="people-options" class="pane-options">
 				<form role="form">
-					{% for correspondent in archive.correspondents %}
+					{% for correspondent in archive.get_correspondents() %}
 						<div class="checkbox">
 							<label>
 								<input type="checkbox" id="{{ correspondent }}_cbox"> {{ correspondent }}
