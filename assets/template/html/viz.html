@@ -11,9 +11,6 @@
 
 	<script>
 		VIZ_JSON = {{ archive.get_messages_by_month() }};
-
-		// TODO: Remove!
-		console.log( VIZ_JSON );
 	</script>
 
 	<script src="{{ static_url( "js/viz.js" ) }}"></script>
@@ -22,7 +19,8 @@
 {% block content %}
 	<div class="col-md-9 well viz-panel">
 		<div id="viz-pane" class="viz-pane">
-			<!-- The visualization pane goes here! -->
+			<svg id="viz">
+			</svg>
 		</div>
 		<div class="playback-pane row">
 			<div class="col-md-1">
@@ -42,7 +40,8 @@
 					{% for medium in archive.get_mediums() %}
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="{{ medium }}_cbox"> {{ medium }}
+								<input type="checkbox" id="{{ medium }}_cbox" onclick="">
+								<strong>{{ medium }}</strong>
 							</label>
 						</div>
 					{% end %}
@@ -50,13 +49,14 @@
 			</div>
 		</div>
 		<div class="people-pane">
-			<h4><strong>People</strong></h4>
+			<h4><strong>Correspondents</strong></h4>
 			<div id="people-options" class="pane-options">
 				<form role="form">
 					{% for correspondent in archive.get_correspondents() %}
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="{{ correspondent }}_cbox"> {{ correspondent }}
+								<input type="checkbox" id="{{ correspondent }}_cbox" onclick=""> 
+								<strong>{{ correspondent }}</strong>
 							</label>
 						</div>
 					{% end %}

@@ -52,7 +52,7 @@ def pull_gchat_data( user_name, password ):
 	medium = "Gchat"
 	messages = []
 
-	messages.append( Message( "Josh", medium, "Hey", datetime(2010,9,1) ) )
+	messages.append( Message( "Josh", medium, "Hey", datetime(2008,9,1) ) )
 	return MessageArchive( messages )
 
 
