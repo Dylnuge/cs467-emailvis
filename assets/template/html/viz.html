@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+
 {% block js_imports %}
 	<script>
 		$( document ).ready( function() 
@@ -8,15 +9,12 @@
 		} );
 	</script>
 
-	<!--
-	TODO: Reimplement this section with the embedded JSON from the back-end.
 	<script>
-		VIZ_JSON = 
-		{
-			
-		}
+		VIZ_JSON = {{ archive.get_messages_by_month() }};
+
+		// TODO: Remove!
+		console.log( VIZ_JSON );
 	</script>
-	-->
 
 	<script src="{{ static_url( "js/viz.js" ) }}"></script>
 {% end %}
@@ -31,14 +29,15 @@
 				<input id="playback-button" class="btn btn-primary" type="submit" value="&#9658">
 			</div>
 			<div class="col-md-11">
-				<input id="playback-slider" type="range" min="1" max="100" step="1" value="1"/>
+				<input id="playback-slider" type="range" 
+				min="1" max="{{ archive.get_age_in_months() }}" step="1" value="1"/>
 			</div>
 		</div>
 	</div>
 	<div class="col-md-3 well viz-panel">
-		<div class="means-pane">
-			<h4><strong>Communication Means</strong></h4>
-			<div id="means-options" class="pane-options">
+		<div class="mediums-pane">
+			<h4><strong>Communication Mediums</strong></h4>
+			<div id="mediums-options" class="pane-options">
 				<form role="form">
 					{% for medium in archive.get_mediums() %}
 						<div class="checkbox">

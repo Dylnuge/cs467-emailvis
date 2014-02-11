@@ -137,3 +137,10 @@ class MessageArchive():
 	##	@return The last email contained in the instance archive chronologically.
 	def get_latest_email( self ):
 		return max( self.message_list, key=lambda msg: msg.send_date )
+
+	##	@return The age of the message archive in a number of months.
+	def get_age_in_months( self ):
+		start = self.get_earliest_email().send_date
+		end = self.get_latest_email().send_date
+
+		return 12*(end.year - start.year) + 1*(end.month - start.month) + 1
