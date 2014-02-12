@@ -18,7 +18,6 @@
 function main()
 {
 	// Main Variables //
-	var vizContainer = undefined;		// Document element for the visualization. 
 	var visualizer = undefined;			// Object that drives the visualization.
 
 	// Initialize Document //
@@ -32,13 +31,8 @@ function main()
 
 	// Initialize Visualization SVG Component //
 	{
-		vizContainer = d3.select( "#viz" );
-		vizContainer.append( "rect" )
-			.attr( "x", 0 ).attr( "y", 0 )
-			.attr( "width", $("#viz").width() ).attr( "height", $("#viz").height() )
-			.attr( "fill", "white" );
-
-		visualizer = new EmailVisualizer( vizContainer, EMAIL_DATA );
+		visualizer = new MessageArchiveVisualizer( "viz", 
+			MSG_DATA, MSG_CORRESPONDENTS, MSG_MEDIUMS );
 	}
 
 	// Integrate Visualization into Document //
@@ -48,7 +42,7 @@ function main()
 			var month_idx = $( "#playback-slider" ).val();
 
 			$( "#playback-month" ).text( index2date(month_idx) );
-			// TODO: Update the visualizer.
+			visualizer.display( month_idx );
 		});
 	}
 }

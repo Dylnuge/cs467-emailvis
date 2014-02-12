@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 
-
 {% block js_imports %}
 	<!-- Backend-Provided JavaScript -->
 	<script>
-		EMAIL_DATA = {{ archive.get_messages_by_month() }};
+		MSG_CORRESPONDENTS = {{ archive.get_correspondents() }};
+		MSG_MEDIUMS = {{ archive.get_mediums() }};
+		MSG_DATA = {{ archive.get_messages_by_month() }};
+
+		MEDIUM_COLORS = {{ medium_color }};
 		MONTH_NAMES = [ "January", "February", "March", "April", "May", "June",
 		    "July", "August", "September", "October", "November", "December" ];
 
@@ -13,8 +16,8 @@
 		 */
 		function index2date( _idx )
 		{
-			var start_month = {{ archive.get_earliest_email().send_date.month - 1 }};
-			var start_year = {{ archive.get_earliest_email().send_date.year }};
+			var start_month = {{ archive.get_earliest_message().send_date.month - 1 }};
+			var start_year = {{ archive.get_earliest_message().send_date.year }};
 
 			var month_delta = Math.floor( _idx % 12 );
 			var year_delta = Math.floor( _idx / 12 );
@@ -28,7 +31,7 @@
 		}
 	</script>
 
-	<script src="{{ static_url( "js/EmailVisualizer.js" ) }}"></script>
+	<script src="{{ static_url( "js/MessageArchiveVisualizer.js" ) }}"></script>
 	<script src="{{ static_url( "js/main.js" ) }}"></script>
 {% end %}
 
@@ -58,7 +61,7 @@
 						<div class="checkbox">
 							<label>
 								<input class="medium-checkbox" type="checkbox" id="{{ medium }}_cbox">
-								<strong>{{ medium }}</strong>
+								<span style="color: {{ medium_color[ medium ] }};"><strong>{{ medium }}</strong></span>
 							</label>
 						</div>
 					{% end %}

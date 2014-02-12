@@ -61,7 +61,8 @@ class VizHandler( tornado.web.RequestHandler ):
 				source_archive = pull_fxn( source_user_name, source_password )
 				aggregate_archive += source_archive
 
-		self.render( "html/viz.html", archive=aggregate_archive )
+		self.render( "html/viz.html", archive=aggregate_archive,
+			medium_color=self.source_colors )
 
 	##	@return A dictionary containing all message sources for the visualization
 	#	as keys and the function used to pull the data from that source as the
@@ -70,6 +71,13 @@ class VizHandler( tornado.web.RequestHandler ):
 	def source_directory( self ):
 		return { "Gmail" : pull_gmail_data, "Gchat" : pull_gchat_data }
 
+	##	@return A dictionary containing all message sources for the visualization
+	#	as keys and the color associated with the source as the associated value.
+	#	TODO: This is a bit of a hack that should be fixed/integrated w/ directory.
+	@property
+	def source_colors( self ):
+		return  { "Gmail" : "#F22E39", "Gchat" : "#3FFF7C",
+			"Facebook" : "#3CCCB8", "LinkedIn" : "#FFFC3D" }
 
 ### UI Modules ###
 

@@ -107,7 +107,7 @@ class MessageArchive():
 	#	keys and the corresponding mediums as values.
 	def get_messages_by_month( self ):
 		month_listing = [ {} for num in range(self.get_age_in_months()) ]
-		start_date = self.get_earliest_email().send_date
+		start_date = self.get_earliest_message().send_date
 
 		for message in self.message_list:
 			month_idx = get_month_count( message.send_date - start_date )
@@ -129,17 +129,17 @@ class MessageArchive():
 
 		return month_listing
 
-	##	@return The first email contained in the instance archive chronologically.
-	def get_earliest_email( self ):
+	##	@return The first message contained in the instance archive chronologically.
+	def get_earliest_message( self ):
 		return min( self.message_list, key=lambda msg: msg.send_date )
 
-	##	@return The last email contained in the instance archive chronologically.
-	def get_latest_email( self ):
+	##	@return The last message contained in the instance archive chronologically.
+	def get_latest_message( self ):
 		return max( self.message_list, key=lambda msg: msg.send_date )
 
 	##	@return The age of the message archive in a number of months.
 	def get_age_in_months( self ):
-		start_date = self.get_earliest_email().send_date
-		end_date = self.get_latest_email().send_date
+		start_date = self.get_earliest_message().send_date
+		end_date = self.get_latest_message().send_date
 
 		return get_month_count( end_date - start_date ) + 1
