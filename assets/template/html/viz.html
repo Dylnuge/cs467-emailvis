@@ -2,6 +2,7 @@
 
 
 {% block js_imports %}
+	<!-- Backend-Provided JavaScript -->
 	<script>
 		EMAIL_DATA = {{ archive.get_messages_by_month() }};
 		MONTH_NAMES = [ "January", "February", "March", "April", "May", "June",
@@ -27,22 +28,7 @@
 		}
 	</script>
 
-	<script>
-		$( document ).ready( function() 
-		{
-			// Adjust the height of the visualization panel to fill browser.
-			$( ".viz-panel" ).height( $(document).height() - 80 );
-
-			// Add event to update the date displayed by the slider.
-			$( "#playback-month" ).text( index2date(0) );
-			$( "#playback-slider" ).on( "change", function()
-			{
-				$( "#playback-month" ).text( index2date($( "#playback-slider" ).val()) );
-			});
-		} );
-	</script>
-
-	<script src="{{ static_url( "js/viz.js" ) }}"></script>
+	<script src="{{ static_url( "js/EmailVisualizer.js" ) }}"></script>
 	<script src="{{ static_url( "js/main.js" ) }}"></script>
 {% end %}
 
@@ -71,7 +57,7 @@
 					{% for medium in archive.get_mediums() %}
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="{{ medium }}_cbox" onclick="">
+								<input class="medium-checkbox" type="checkbox" id="{{ medium }}_cbox">
 								<strong>{{ medium }}</strong>
 							</label>
 						</div>
@@ -86,7 +72,7 @@
 					{% for correspondent in archive.get_correspondents() %}
 						<div class="checkbox">
 							<label>
-								<input type="checkbox" id="{{ correspondent }}_cbox" onclick=""> 
+								<input class="people-checkbox" type="checkbox" id="{{ correspondent }}_cbox">
 								<strong>{{ correspondent }}</strong>
 							</label>
 						</div>
