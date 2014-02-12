@@ -3,32 +3,63 @@
 
 {% block js_imports %}
 	<script>
-		$( document ).ready( function() 
+		EMAIL_DATA = {{ archive.get_messages_by_month() }};
+		MONTH_NAMES = [ "January", "February", "March", "April", "May", "June",
+		    "July", "August", "September", "October", "November", "December" ];
+
+		/**
+		 * Given an index for visualization, returns corresponding date string.
+		 */
+		function index2date( _idx )
 		{
-			$( ".viz-panel" ).height( $(document).height() - 80 );
-		} );
+			var start_month = {{ archive.get_earliest_email().send_date.month - 1 }};
+			var start_year = {{ archive.get_earliest_email().send_date.year }};
+
+			var month_delta = Math.floor( _idx % 12 );
+			var year_delta = Math.floor( _idx / 12 );
+
+			var idx_month_val = ( start_month + month_delta );
+			var idx_month = Math.floor( idx_month_val % 12 );
+			var idx_year = Math.floor( start_year + year_delta + 
+				( ( idx_month_val >= 12 ) ? 1 : 0 ) );
+
+			return MONTH_NAMES[ idx_month ] + ", " + idx_year;
+		}
 	</script>
 
 	<script>
-		VIZ_JSON = {{ archive.get_messages_by_month() }};
+		$( document ).ready( function() 
+		{
+			// Adjust the height of the visualization panel to fill browser.
+			$( ".viz-panel" ).height( $(document).height() - 80 );
+
+			// Add event to update the date displayed by the slider.
+			$( "#playback-month" ).text( index2date(0) );
+			$( "#playback-slider" ).on( "change", function()
+			{
+				$( "#playback-month" ).text( index2date($( "#playback-slider" ).val()) );
+			});
+		} );
 	</script>
 
 	<script src="{{ static_url( "js/viz.js" ) }}"></script>
+	<script src="{{ static_url( "js/main.js" ) }}"></script>
 {% end %}
 
 {% block content %}
 	<div class="col-md-9 well viz-panel">
-		<div id="viz-pane" class="viz-pane">
-			<svg id="viz">
+		<div id="viz-pane" class="viz-pane row">
+			<svg id="viz" class="col-md-12">
 			</svg>
 		</div>
 		<div class="playback-pane row">
 			<div class="col-md-1">
 				<input id="playback-button" class="btn btn-primary" type="submit" value="&#9658">
 			</div>
-			<div class="col-md-11">
+			<div class="col-md-11 form-group">
 				<input id="playback-slider" type="range" 
-				min="1" max="{{ archive.get_age_in_months() }}" step="1" value="1"/>
+				min="0" max="{{ archive.get_age_in_months() - 1 }}" step="1" value="0"/>
+				<p id="playback-month" class="text-center"></p>
 			</div>
 		</div>
 	</div>

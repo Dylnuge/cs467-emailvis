@@ -11,6 +11,17 @@
 import json
 from datetime import datetime
 
+### Module Functions ###
+
+##	Given a time delta value, this function computes the number of months
+#	in the delta as an integer.
+#
+#	@param delta The time delta for which the number of months will be calculated.
+#	@return The total number of months covered by the time delta as an integer.
+def get_month_count( delta ):
+	day_count = abs( delta.days )
+	return int( day_count / 30 )
+
 ### Module Classes ###
 
 ##	A class representation of a single message sent between two users over a
@@ -33,17 +44,6 @@ class Message():
 		self.send_date = send_date
 
 	### Methods ###
-
-	##	Returns a string representing the send date of the message of the
-	#	form "month-year" (with no integer value padding).
-	#
-	#	@return A string of the form "month-year" corresponding to the send
-	#	date of the message.
-	def get_date_string( self ):
-		month = str(int( self.send_date.strftime( "%m" ) ))
-		year = str(int( self.send_date.strftime( "%Y" ) ))
-
-		return month + "-" + year
 
 	##	Returns the volume of the instance message measured in terms of the
 	#	total number of characters contained within the message.
@@ -102,21 +102,20 @@ class MessageArchive():
 
 		return list(set( mediums ))
 
-	##	@return A dictionary of all the messages contained within the archive
-	#	associated by sent month (key for month is of the form "1-2014").
+	##	@return A list of dictionaries (of length equal to the age of the archive
+	#	in months) where each dictionary contains the names of correspondents as
+	#	keys and the corresponding mediums as values.
 	def get_messages_by_month( self ):
-		month_map = {}
+		month_listing = [ {} for num in range(self.get_age_in_months()) ]
+		start_date = self.get_earliest_email().send_date
 
 		for message in self.message_list:
-			month = message.get_date_string()
-			if not month in month_map:
-				month_map[ month ] = {}
-			people_map = month_map[ month ]
+			month_idx = get_month_count( message.send_date - start_date )
+			month_directory = month_listing[ month_idx ]
 
-			person = message.correspondent
-			if not person in people_map:
-				people_map[ person ] = {}
-			medium_map = people_map[ person ]
+			if not message.correspondent in month_directory:
+				month_directory[ message.correspondent ] = {}
+			medium_map = month_directory[ message.correspondent ]
 
 			medium = message.medium
 			if not medium in medium_map:
@@ -128,7 +127,7 @@ class MessageArchive():
 			medium_map[ medium ][ "volume" ] += message.get_volume()
 			medium_map[ medium ][ "formality" ] += message.get_formality_level()
 
-		return month_map
+		return month_listing
 
 	##	@return The first email contained in the instance archive chronologically.
 	def get_earliest_email( self ):
@@ -140,7 +139,7 @@ class MessageArchive():
 
 	##	@return The age of the message archive in a number of months.
 	def get_age_in_months( self ):
-		start = self.get_earliest_email().send_date
-		end = self.get_latest_email().send_date
+		start_date = self.get_earliest_email().send_date
+		end_date = self.get_latest_email().send_date
 
-		return 12*(end.year - start.year) + 1*(end.month - start.month) + 1
+		return get_month_count( end_date - start_date ) + 1

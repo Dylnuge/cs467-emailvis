@@ -38,7 +38,7 @@ def pull_gmail_data( user_name, password ):
 	medium = "Gmail"
 	messages = []
 
-	messages.append( Message( "Jim", medium, "Hey", datetime(2010,10,1) ) )
+	messages.append( Message( "Jim", medium, "Hey", datetime(2010,9,1) ) )
 	return MessageArchive( messages )
 
 
