@@ -8,7 +8,34 @@
  * @TODO
  * - The visualizer currently displays all data given for the earliest month
  *   by default.  Change this behavior to be more general if need be.
+ * - Clean up the collision detection code.
  */
+
+// @see http://bl.ocks.org/mbostock/3231298
+function collide(node) {
+  var r = node.radius() + 16,
+      nx1 = node.x - r,
+      nx2 = node.x + r,
+      ny1 = node.y - r,
+      ny2 = node.y + r;
+  return function(quad, x1, y1, x2, y2) {
+    if (quad.point && (quad.point !== node)) {
+      var x = node.x - quad.point.x,
+          y = node.y - quad.point.y,
+          l = Math.sqrt(x * x + y * y),
+          r = node.radius() + quad.point.radius();
+      if (l < r) {
+        l = (l - r) / l * .5;
+        node.x -= x *= l;
+        node.y -= y *= l;
+        quad.point.x += x;
+        quad.point.y += y;
+      }
+    }
+    return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+  };
+}
+
 
 /**
  * The base type for the message archive visualization, which generates a 
@@ -34,8 +61,23 @@ var MessageArchiveVisualizer = Class.extend({
 		this.mMessageData = _msgData;
 		this.mDisplayIdx = 0;
 
+		var idFunc = this.mfGetPersonDataID;
+		this.mPersonNodes = _msgPeople.map( 
+			function( _person ) { return {"person": _person, "fixed": false, "radius": 
+				function()
+				{
+					var personElement = d3.select( "#"+idFunc(_person) );
+					var radii = []
+					personElement.selectAll( "circle" ).each(function(_data){radii.push(_data["volume"]);});
+
+					return Math.max.apply( null, radii );
+				} }; } 
+		).concat( {"person": "self", "x": this.mfGetCanvasW() / 2, "y": this.mfGetCanvasH() / 2, 
+			"fixed": true, "radius": function(){return 0;}} );
+
 		this.mfInitCanvas();
 		this.mfPopulateCanvas( _msgPeople, _msgMediums );
+		this.mfInitForceLayout();
 	},
 
 	/// Functions ///
@@ -88,16 +130,62 @@ var MessageArchiveVisualizer = Class.extend({
 			.data( _msgPeople ).enter().append( "g" )
 			.attr( "id", this.mfGetPersonDataID );
 
+		// TODO: Remove automatic radius set to 10.
 		personGroups.selectAll( "g mediums" )
 			.data( _msgMediums ).enter().append( "circle" )
 			.attr( "class", this.mfGetMediumDataClass )
 			.attr( "fill", function( _data ) { return MEDIUM_COLORS[_data]; })
-			.attr( "r", function( _data ) { return 0; } );
+			.attr( "r", function( _data ) { return 10; } );
+		personGroups.selectAll( "circle" ).datum( { "formality": 1.0, "volume": 10 } );
 
 		// TODO: Fix the font adjustment factor.
 		personGroups.append( "text" )
 			.attr( "dx", function( _data ) { return -20; } )
 			.text( function( _data ) { return _data; } );
+	},
+
+	/**
+	 * Initializes the force layout so that each person data item gravitates 
+	 * toward its proper space.
+	 */
+	mfInitForceLayout : function()
+	{
+		var centerNode = this.mPersonNodes[ this.mPersonNodes.length - 1 ];
+		var nodeLinks = []
+		for( var i = 0; i < this.mPersonNodes.length - 1; ++i )
+			nodeLinks.push( { "source": centerNode, "target": this.mPersonNodes[i]} )
+
+		this.mForceLayout = d3.layout.force()
+			.nodes( this.mPersonNodes )
+			.links( nodeLinks )
+			// TODO: Link distance is proportional to current formality.
+			.linkDistance( function( _link )
+			{ 
+				return 100;
+			} )
+			.linkStrength( 1.0 )
+			.gravity( 0.01 )
+			.size([ this.mfGetCanvasW(), this.mfGetCanvasH() ])
+
+		var canvas = this.mCanvas;
+		var personNodes = this.mPersonNodes;
+		var idFunc = this.mfGetPersonDataID;
+		this.mForceLayout.on("tick", function(e) {
+			var q = d3.geom.quadtree(personNodes),
+				i = 0,
+				n = personNodes.length - 1;
+
+				while (i++ < n) q.visit(collide(personNodes[i]));
+
+				for( var i = 0; i < personNodes.length - 1; ++i )
+				{
+					var node = personNodes[i];
+					canvas.select( "#" + idFunc(node["person"]) )
+						.attr( "transform", "translate("+node.x+","+node.y+")" );
+				}
+		});
+
+		this.mForceLayout.start();
 	},
 
 	/**
@@ -147,6 +235,18 @@ var MessageArchiveVisualizer = Class.extend({
 	 * The message data set provided by the visualization backend.
 	 */
 	mMessageData : undefined,
+
+	/**
+	 * A listing of all the people that are contained as correspondents within 
+	 * the message data set.
+	 */
+	mPersonNodes : undefined,
+
+	/**
+	 * The force layout used by the visualization to facilitate the movement of
+	 * the person data items.
+	 */
+	mForceLayout : undefined,
 
 	/**
 	 * The index of the data segment within the full message data set currently
