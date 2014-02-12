@@ -38,7 +38,7 @@ def pull_gmail_data( user_name, password ):
 	medium = "Gmail"
 	messages = []
 
-	messages.append( Message( "Jim", medium, "Hey", datetime(2010,9,1) ) )
+	messages.append( Message( "Jim", medium, "Heyaaaaaaaaa", datetime(2010,9,1) ) )
 	return MessageArchive( messages )
 
 
@@ -53,6 +53,7 @@ def pull_gchat_data( user_name, password ):
 	messages = []
 
 	messages.append( Message( "Josh", medium, "Hey", datetime(2008,9,1) ) )
+	messages.append( Message( "Jim", medium, "Heyaaaa", datetime(2010,9,1) ) )
 	return MessageArchive( messages )
 
 

@@ -9,6 +9,9 @@
  * - The visualizer currently displays all data given for the earliest month
  *   by default.  Change this behavior to be more general if need be.
  * - Clean up the collision detection code.
+ * - Fix the code duplication related to getting identifier values.
+ * - Remove the need to initialize the force layout every time a change is made
+ *   to the ties in the structure (e.g. formality values change).
  */
 
 // @see http://bl.ocks.org/mbostock/3231298
@@ -59,7 +62,7 @@ var MessageArchiveVisualizer = Class.extend({
 		this.mCanvasID = _canvasID;
 		this.mCanvas = d3.select( "#" + this.mCanvasID );
 		this.mMessageData = _msgData;
-		this.mDisplayIdx = 0;
+		this.mMediums = _msgMediums;
 
 		var idFunc = this.mfGetPersonDataID;
 		this.mPersonNodes = _msgPeople.map( 
@@ -77,7 +80,8 @@ var MessageArchiveVisualizer = Class.extend({
 
 		this.mfInitCanvas();
 		this.mfPopulateCanvas( _msgPeople, _msgMediums );
-		this.mfInitForceLayout();
+
+		this.display( 0 );
 	},
 
 	/// Functions ///
@@ -91,7 +95,90 @@ var MessageArchiveVisualizer = Class.extend({
 	 */
 	display : function( _dataIdx )
 	{
-		
+		var dataSegment = this.mMessageData[ _dataIdx ];
+		console.log( dataSegment );
+
+		for( var i = 0; i < this.mPersonNodes.length - 1; ++i )
+		{
+			var personNode = this.mPersonNodes[ i ];
+			var personName = personNode[ "person" ];
+
+			var personElement = d3.select( "#"+this.mfGetPersonDataID(personName) );
+			var personNewData = dataSegment[ personName ];
+			
+			for( var mediumIdx = 0; mediumIdx < this.mMediums.length; ++mediumIdx )
+			{
+				var medium = this.mMediums[ mediumIdx ];
+				var mediumElement = personElement.selectAll( "." + this.mfGetMediumDataClass( medium ) );
+
+				mediumElement.datum( function( _data )
+				{
+					var newData = jQuery.extend( true, {}, personNewData[ medium ] );
+					newData[ "on" ] = _data[ "on" ];
+					return newData;
+				} );
+						
+				mediumElement.transition().duration(400).attr( "r", function( _data )
+				{
+					return _data[ "on" ] ? _data["volume"] : 0;
+				} );
+			}
+
+			personElement.selectAll( "circle" ).sort( function( _first, _second ) 
+			{
+				return _second[ "volume" ] - _first[ "volume" ];
+			} ).order();
+		}
+
+		this.mfInitForceLayout();
+	},
+	
+	/**
+	 * Toggles the filter on the given medium for the visualization.
+	 *
+	 * @param _medium The medium that will be toggled for visibility in the
+	 *  visualization.
+	 */
+	toggleMediumFilter : function( _medium )
+	{
+		var mediumElements = this.mCanvas.selectAll( "." + this.mfGetMediumDataClass(_medium) );
+
+		mediumElements.datum( function( _prevData )
+		{
+			_prevData[ "on" ] = !_prevData[ "on" ];
+			return _prevData;
+		} );
+		mediumElements.transition().duration(400).attr( "r", function(_data)
+		{
+			return _data[ "on" ] ? _data["volume"] : 0;
+		} );
+
+		this.mfInitForceLayout();
+	},
+
+	/**
+	 * Toggles the filter on the given person for the visualization.
+	 *
+	 * @param _persom The name of the person that will be toggled for visibility 
+	 *  in the visualization.
+	 */
+	togglePersonFilter : function( _person )
+	{
+		var personElement = this.mCanvas.select( "#" + this.mfGetPersonDataID(_person) );
+
+		personElement.datum( function( _prevData )
+		{
+			console.log( _prevData );
+			_prevData[ "on" ] = !_prevData[ "on" ];
+			return _prevData;
+		} );
+		personElement.attr( "visibility", function(_data)
+		{
+			console.log( _data[ "on" ] );
+			return _data[ "on" ] ? "inherit" : "hidden";
+		} );
+
+		//this.mfInitForceLayout();
 	},
 
 	/// Helper Functions ///
@@ -111,7 +198,7 @@ var MessageArchiveVisualizer = Class.extend({
 		var userData = this.mCanvas.append( "circle" )
 			.attr( "cx", this.mfGetCanvasW() / 2.0 )
 			.attr( "cy", this.mfGetCanvasH() / 2.0 )
-			.attr( "r", 20 )
+			.attr( "r", 10 )
 			.attr( "fill", "black" );
 	},
 
@@ -126,17 +213,21 @@ var MessageArchiveVisualizer = Class.extend({
 	 */
 	mfPopulateCanvas : function( _msgPeople, _msgMediums )
 	{
+		// TODO: Add more data items to allow for filtering.
 		var personGroups = this.mCanvas.selectAll( "g people" )
 			.data( _msgPeople ).enter().append( "g" )
 			.attr( "id", this.mfGetPersonDataID );
+		personGroups.datum( function(_data) 
+		{ 
+			return { "toString":function(){ return _data; }, "name": _data, "on": true }; 
+		});
 
-		// TODO: Remove automatic radius set to 10.
 		personGroups.selectAll( "g mediums" )
 			.data( _msgMediums ).enter().append( "circle" )
 			.attr( "class", this.mfGetMediumDataClass )
 			.attr( "fill", function( _data ) { return MEDIUM_COLORS[_data]; })
-			.attr( "r", function( _data ) { return 10; } );
-		personGroups.selectAll( "circle" ).datum( { "formality": 1.0, "volume": 10 } );
+			.attr( "r", function( _data ) { return 0; } );
+		personGroups.selectAll( "circle" ).datum({ "formality": 0.0, "volume": 0, "count": 0, "on": true });
 
 		// TODO: Fix the font adjustment factor.
 		personGroups.append( "text" )
@@ -155,13 +246,30 @@ var MessageArchiveVisualizer = Class.extend({
 		for( var i = 0; i < this.mPersonNodes.length - 1; ++i )
 			nodeLinks.push( { "source": centerNode, "target": this.mPersonNodes[i]} )
 
+		var screenMin = Math.min( this.mfGetCanvasW(), this.mfGetCanvasH() ) / 2.0;
+		var idFunc = this.mfGetPersonDataID;
 		this.mForceLayout = d3.layout.force()
 			.nodes( this.mPersonNodes )
 			.links( nodeLinks )
-			// TODO: Link distance is proportional to current formality.
 			.linkDistance( function( _link )
 			{ 
-				return 100;
+				var personName = _link["target"]["person"];
+				var personElement = d3.select( "#" + idFunc(personName) )
+				var formalityLevel = 0.0;
+				var numValues = 0;
+
+				personElement.selectAll( "circle" ).each( 
+					function(_data)
+					{
+						if( _data["count"] !== 0 && _data[ "on" ] )
+						{
+							formalityLevel += _data["formality"];
+							numValues++; 
+						}
+					}
+				);
+
+				return (numValues === 0 ) ? screenMin : screenMin * ( formalityLevel / numValues );
 			} )
 			.linkStrength( 1.0 )
 			.gravity( 0.01 )
@@ -236,6 +344,9 @@ var MessageArchiveVisualizer = Class.extend({
 	 */
 	mMessageData : undefined,
 
+	// TODO:
+	mMediums : undefined,
+
 	/**
 	 * A listing of all the people that are contained as correspondents within 
 	 * the message data set.
@@ -247,11 +358,5 @@ var MessageArchiveVisualizer = Class.extend({
 	 * the person data items.
 	 */
 	mForceLayout : undefined,
-
-	/**
-	 * The index of the data segment within the full message data set currently
-	 * being displayed by the instance.
-	 */
-	mDisplayIdx : undefined,
 
 });

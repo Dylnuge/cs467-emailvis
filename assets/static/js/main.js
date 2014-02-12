@@ -19,6 +19,7 @@ function main()
 {
 	// Main Variables //
 	var visualizer = undefined;			// Object that drives the visualization.
+	var playingViz = false;
 
 	// Initialize Document //
 	{
@@ -43,6 +44,24 @@ function main()
 
 			$( "#playback-month" ).text( index2date(month_idx) );
 			visualizer.display( month_idx );
+		});
+
+		$( ".medium-checkbox" ).on( "click", function()
+		{
+			var checkboxID = $( this ).attr( "id" );
+			var checkboxTag = "_cbox";
+			var mediumID = checkboxID.substring( 0, checkboxID.length - checkboxTag.length );
+
+			visualizer.toggleMediumFilter( mediumID );
+		});
+
+		$( ".people-checkbox" ).on( "click", function()
+		{
+			var checkboxID = $( this ).attr( "id" );
+			var checkboxTag = "_cbox";
+			var personID = checkboxID.substring( 0, checkboxID.length - checkboxTag.length );
+
+			visualizer.togglePersonFilter( personID );
 		});
 	}
 }

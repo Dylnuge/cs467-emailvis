@@ -109,23 +109,34 @@ class MessageArchive():
 		month_listing = [ {} for num in range(self.get_age_in_months()) ]
 		start_date = self.get_earliest_message().send_date
 
+		# Note: Increases running time on the back end to make things easier on
+		# the front end.
+		for month in month_listing:
+			for correspondent in self.get_correspondents():
+				month[ correspondent ] = {}
+
+				for medium in self.get_mediums():
+					month[ correspondent ][ medium ] = { "count": 0, "volume": 0, "formality": 0.0 }
+
 		for message in self.message_list:
 			month_idx = get_month_count( message.send_date - start_date )
 			month_directory = month_listing[ month_idx ]
-
-			if not message.correspondent in month_directory:
-				month_directory[ message.correspondent ] = {}
 			medium_map = month_directory[ message.correspondent ]
-
-			medium = message.medium
-			if not medium in medium_map:
-				medium_map[ medium ] = { "count": 0, "volume": 0, "formality": 0.0 }
 
 			# After the medium has been found for the proper person and month,
 			# associate the message data with this month.
-			medium_map[ medium ][ "count" ] += 1
-			medium_map[ medium ][ "volume" ] += message.get_volume()
-			medium_map[ medium ][ "formality" ] += message.get_formality_level()
+			medium_map[ message.medium ][ "count" ] += 1
+			medium_map[ message.medium ][ "volume" ] += message.get_volume()
+			medium_map[ message.medium ][ "formality" ] += message.get_formality_level()
+
+		# Note: Normalize values before they reach the front end.
+		for month in month_listing:
+			for correspondent in self.get_correspondents():
+				for medium in self.get_mediums():
+					medium_count = month[ correspondent ][ medium ][ "count" ]
+					medium_count = medium_count if medium_count != 0 else 1
+
+					month[ correspondent ][ medium ][ "formality" ] /= medium_count
 
 		return month_listing
 
