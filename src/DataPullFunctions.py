@@ -4,11 +4,12 @@
 #
 #	Module File containing Message Data Pulling Functions from Websites
 
-import requests
 import json
+import re
+import requests
 
-import imaplib
-import email
+import mailbox
+
 import datetime
 from dateutil.parser import parse
 
@@ -17,11 +18,13 @@ from MessageArchive import *
 ### Constants for API Endpoints ###
 FACEBOOK_API = "https://graph.facebook.com/"
 
+GMAIL_PATH = "messages/gmail.mbox"
 GTALK_PATH = "messages/gtalk.json"
 HANGOUTS_PATH = "messages/hangouts.json"
 
 FACEBOOK_TAG = "Facebook"
 GCHAT_TAG = "GChat"
+GMAIL_TAG = "Gmail"
 
 ### Data Pulling Functions ###
 
@@ -104,15 +107,47 @@ def _strip_fb_messages(comments, author):
 #	sent from and received by the given user.
 #
 #	@param user_name The name of the user whose message data will be retrieved.
-#	@param password The credentials of the user whose message data will be retrieved.
+#	@param mbox_location Path to a .mbox file to parse.
 #	@return A 'MessageArchive' containing all the message data for the user.
-def pull_gmail_data( user_name, password ):
+def pull_gmail_data(user_name, mbox_location):
 	medium = "Gmail"
 	messages = []
 
-	messages.append( Message( "Jim", medium, "Heyaaaaaaaaa", datetime(2010,9,1) ) )
+	# Step 1: Get the mbox file
+	mail = mailbox.mbox(mbox_location)
+	for email in mail:
+		if email.is_multipart() or email['Content-Type'] is not 'text/plain':
+			# TODO(dylnuge): Multipart messages and encoded messages might be
+			# useful in the future. Most noticably we lose ALL html email this
+			# way.
+			continue
+
+		author = ""
+		sender = _strip_email_address(email['From'])
+		recipient = _strip_email_addres(email['To'])
+		if sender != user_name:
+			# Sender is more stable to break on. The sender is likely a single
+			# individual, but recipient might be a mailing list that the user
+			# is a part of, for instance.
+			author = sender
+		else:
+			author = recipient
+
+		time = dateutil.parse(email['Date'])
+		contents = email.get_payload()
+
+		element = Message(author, GMAIL_TAG, contents, time)
+		messages.append(element)
+
 	return MessageArchive( messages )
 
+def _strip_email_address(address):
+	# Attempt to strip an email address to just a username. If this fails,
+	# leave it as it was.
+	address_match = re.match('(.*) <', address)
+	if address_match:
+		address = address_match.group(1).strip()
+	return address
 
 ##	Returns a 'MessageArchive' object containing all the Gchat messages
 #	sent from and received by the given user.
