@@ -16,7 +16,12 @@ from MessageArchive import *
 
 ### Constants for API Endpoints ###
 FACEBOOK_API = "https://graph.facebook.com/"
+
+GTALK_PATH = "messages/gtalk.json"
+HANGOUTS_PATH = "messages/hangouts.json"
+
 FACEBOOK_TAG = "Facebook"
+GCHAT_TAG = "GChat"
 
 ### Data Pulling Functions ###
 
@@ -112,16 +117,75 @@ def pull_gmail_data( user_name, password ):
 ##	Returns a 'MessageArchive' object containing all the Gchat messages
 #	sent from and received by the given user.
 #
-#	@param user_name The name of the user whose message data will be retrieved.
+#	@param full_name The name of the user whose message data will be retrieved.
 #	@param password The credentials of the user whose message data will be retrieved.
 #	@return A 'MessageArchive' containing all the message data for the user.
-def pull_gchat_data( user_name, password ):
+def pull_gchat_data( full_name, password ):
 	medium = "Gchat"
 	messages = []
 
-	messages.append( Message( "Josh", medium, "Hey", datetime(2008,9,1) ) )
-	messages.append( Message( "Jim", medium, "Heyaaaa", datetime(2010,9,1) ) )
+	messages.extend(_parse_hangouts_file(full_name))
+	messages.extend(_parse_gtalk_file(full_name))
+
 	return MessageArchive( messages )
+
+def _parse_hangouts_file(full_name):
+	messages = []
+	# Step 1: Parse the file into chat data
+	with open(HANGOUTS_PATH) as hangout_data:
+		hangouts = json.load(hangout_data)
+
+	# Step 2: Process chat data into messages
+	for hangout in hangouts['conversation_state']:
+		conversation = hangout['conversation_state']
+
+		author = ""
+		participants = conversation['conversation']['participant_data']
+		if len(participants) > 2:
+			continue
+		for user in participants:
+			if user['fallback_name'] != full_name:
+				author = full_name
+
+		for message in conversation['event']:
+			timestamp = message['timestamp']
+			time = datetime.fromtimestamp(int(timestamp)/1000000)
+			# I hate the hangouts API for this one, sorry for how ugly it is
+			for message_content in message['chat_message']['message_content']['segment']:
+				if 'text' in message_content.keys():
+					element = Message(author, GCHAT_TAG, message_content['text'],
+							time)
+					messages.append(element)
+
+	return messages
+
+def _parse_gtalk_file(full_name):
+	messages = []
+	# Step 1: Parse the file into chat data
+	with open(GTALK_PATH) as chat_data:
+		chats = json.load(chat_data)
+
+	# Step 2: Process chat data into messages
+	for chat in chats:
+		author = ""
+		if len(chat['conversation']['participant']) > 2:
+			# Ignore group chats
+			continue
+		for user in chat['conversation']['participant']:
+			if user['full_name'] != full_name:
+				author = user['full_name']
+
+		for message in chat['events']:
+			timestamp = message['chat_message']['timestamp']
+			time = datetime.fromtimestamp(timestamp/1000000)
+			for message_content in message['chat_message']['content']:
+				# XXX (dylnuge): This is really awkward but I don't know if
+				# multiple messages can be embedded here
+				element = Message(author, GCHAT_TAG, message_content['text'],
+						time)
+				messages.append(element)
+
+	return messages
 
 
 ##	Returns a 'MessageArchive' object containing all the LinkedIn messages
